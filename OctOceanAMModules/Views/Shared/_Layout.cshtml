@@ -4,13 +4,91 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - OctOceanAMModules</title>
-    <script src="~/lib/view/dist/js/vue.min.js"></script>
+
+    <link href="~/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/css/octocean.base.css" rel="stylesheet" />
+    <script src="~/lib/jquery/jquery.min.js"></script>
+
+
 </head>
-<body>
-    @RenderBody()
 
-    @RenderSection("Scripts", required: false)
-   
+<body class="layui-layout-body">
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-header">
+            <div class="layui-logo">用户角色权限管理</div>
+            <!-- 头部区域（可配合layui已有的水平导航） -->
+            <ul class="layui-nav layui-layout-left">
+                    <li class="layui-nav-item"><a href="/User/Index">用户</a></li>
+                    <li class="layui-nav-item"><a href="/Role/Index">角色</a></li>
+                    <li class="layui-nav-item"><a href="">菜单</a></li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">其它项目</a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="">项目一</a></dd>
+                            <dd><a href="">项目二</a></dd>
+                            <dd><a href="">项目三</a></dd>
+                        </dl>
+                    </li>
+                </ul>
+            <ul class="layui-nav layui-layout-right">
+                <li class="layui-nav-item">
+                    <a href="javascript:;">
+                        @*<img src="" class="layui-nav-img">*@
+                        OctOcean
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="">基本资料</a></dd>
+                        <dd><a href="">安全设置</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item"><a href="">退了</a></li>
+            </ul>
+        </div>
 
+        <div class="layui-side layui-bg-black">
+            <div class="layui-side-scroll">
+                <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+                <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                    <li class="layui-nav-item layui-nav-itemed">
+                        <a class="" href="javascript:;">权限管理</a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="/User/Index">用户管理</a></dd>
+                            <dd><a href="/Role/Index">角色管理</a></dd>
+                            <dd><a href="/Menu/Index">菜单功能管理</a></dd>
+                            
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">其他内容</a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;">列表一</a></dd>
+                            <dd><a href="javascript:;">列表二</a></dd>
+                            <dd><a href="">超链接</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item"><a href="">其他内容</a></li>
+                    <li class="layui-nav-item"><a href="">其他内容</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;">
+                @RenderBody()
+
+            </div>
+        </div>
+
+        <div class="layui-footer">
+            <!-- 底部固定区域 -->
+            © layui.com - 底部固定区域
+        </div>
+    </div>
+    <script src="~/lib/layui/layui.all.js"></script>
+    @RenderSection("BottomScripts", required: false)
 </body>
+
+
+
 </html>
