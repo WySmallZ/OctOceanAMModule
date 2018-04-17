@@ -6,10 +6,12 @@
     <title>@ViewData["Title"] - OctOceanAMModules</title>
 
     <link href="~/lib/layui/css/layui.css" rel="stylesheet" />
-    <link href="~/css/octocean.base.css" rel="stylesheet" />
+
     <script src="~/lib/jquery/jquery.min.js"></script>
 
+    @RenderSection("HeadScripts", required: false)
 
+    <link href="~/css/octocean.base.css" rel="stylesheet" />
 </head>
 
 <body class="layui-layout-body">

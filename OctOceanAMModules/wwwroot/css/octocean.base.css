@@ -1,2 +1,6 @@
 ﻿body {
 }
+#myfuntbody input {
+    height: 18px;
+    line-height: 1.5;
+}

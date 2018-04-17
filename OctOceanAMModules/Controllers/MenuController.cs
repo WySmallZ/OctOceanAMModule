@@ -3,14 +3,146 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using OctOceanAMModules.DataServices;
+using OctOceanAMModules.Entity;
+using OctOceanAMModules.Models;
 
 namespace OctOceanAMModules.Controllers
 {
     public class MenuController : Controller
     {
+        private readonly PageMenuService _pageMenuService;
+
+        public MenuController(PageMenuService pageMenuService)
+        {
+            _pageMenuService = pageMenuService;
+        }
+
+
+        private void AddMenu(Sys_PageMenuEntity entity, Dictionary<int, Sys_PageMenuEntity> dic, List<MenuViewModel> menuList)
+        {
+            MenuViewModel vm = new MenuViewModel()
+            {
+                PageId = entity.PageId,
+                PageUrl = entity.Sys_PageUrl.PageUrl,
+                ParentId = entity.Sys_PageUrl.ParentMenuPageId,
+                PageSortNum = entity.Sys_PageUrl.MenuSortNum,
+                PageTitle = entity.Sys_PageUrl.PageTitle
+
+            };
+            menuList.Add(vm);
+
+            foreach (var _entity in entity.ChirldMenuPageUrls.OrderBy(a => a.MenuSortNum).ToList())
+            {
+                if (dic.ContainsKey(_entity.PageId))
+                {
+                    AddMenu(dic[_entity.PageId], dic, menuList);
+                }
+                else
+                {
+                    MenuViewModel vm2 = new MenuViewModel()
+                    {
+                        PageId = _entity.PageId,
+                        PageUrl = _entity.PageUrl,
+                        ParentId = _entity.ParentMenuPageId,
+                        PageSortNum = _entity.MenuSortNum,
+                        PageTitle = _entity.PageTitle
+
+                    };
+
+                    menuList.Add(vm2);
+                }
+            }
+
+        }
+
+
+
+
         public IActionResult Index()
         {
+            List<MenuViewModel> MenuList = new List<MenuViewModel>();
+            Dictionary<int, Sys_PageMenuEntity> dic = _pageMenuService.getSys_PageMenuEntityDic();
+            
+            foreach (int pageId in dic.Keys)
+            {
+                if (MenuList.FirstOrDefault(a => a.PageId == pageId) == null)
+                {
+                    AddMenu(dic[pageId], dic, MenuList);
+                }
+            }
+
+            return View(MenuList);
+        }
+        [HttpGet]
+        public IActionResult Edit(int PageId, int ParentId = 0)
+        {
+
+            var entity = _pageMenuService.GetSys_PageUrlEntity(PageId);
+            if (entity == null)
+            {
+                entity = new Sys_PageUrlEntity() { ParentMenuPageId = ParentId };
+            }
+            return View(entity);
+        }
+
+
+          
+
+
+
+
+        [HttpPost]
+        public IActionResult Edit([FromForm]Sys_PageUrlEntity entity)
+        {
+            //判断是否存在维护的code
+            var _tempentity = _pageMenuService.GetSys_PageUrlEntity(entity.PageTitle, entity.ParentMenuPageId);
+            //修改操作
+            if (entity.PageId > 0)
+            {
+                if (_tempentity == null || _tempentity.PageId == entity.PageId)
+                {
+                    if (_pageMenuService.UpdateSys_PageUrl(entity) > 0)
+                    {
+                        ViewData["Status"] = 1;
+                    }
+                    else
+                    {
+                        ViewData["Status"] = -2;
+                    }
+                }
+                else
+                {
+                    //已存在rolecode
+                    ViewData["Status"] = -1;
+                }
+            }
+            else
+            {
+                if (_tempentity == null)
+                {
+                    //新增
+                    _pageMenuService.InsertSys_PageUrl(entity);
+                    ViewData["Status"] = 1;
+                }
+                else
+                {
+                    //已存在rolecode
+                    ViewData["Status"] = -1;
+                }
+            }
+
+
             return View();
+        }
+
+
+        public async Task<object> Delete(int PageId)
+        {
+            //删除角色
+            await _pageMenuService.DeleteSys_PageUrlAsync(PageId);
+            return new { status = 1 };
+            //删除该角色下的权限
         }
     }
 }

@@ -1,0 +1,73 @@
+﻿
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
+}
+@model OctOceanAMModules.Entity.Sys_UserEntity
+<div style="padding:20px;">
+    <form method="post" class="layui-form layui-form-pane">
+        <input asp-for="UserId" type="hidden" />
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">User Code:</label>
+            <div class="layui-input-block">
+                <input asp-for="UserCode" type="text" maxlength="10" required lay-verify="required" placeholder="请输入用户Code" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名称:</label>
+            <div class="layui-input-block">
+                <input asp-for="UserName" type="text" maxlength="10" required lay-verify="required" placeholder="请输入用户名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户密码:</label>
+            <div class="layui-input-block">
+                <input asp-for="UserPassWord" type="text" maxlength="10" required lay-verify="required" placeholder="请输入用户密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户邮箱:</label>
+            <div class="layui-input-block">
+                <input asp-for="UserMail" type="text" maxlength="10" required lay-verify="required" placeholder="请输入用户邮箱" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-green" type="submit"><i class="layui-icon">&#xe609;</i>保存</button>
+                <input type="reset" class="layui-btn layui-btn-primary" value="重置" />
+            </div>
+        </div>
+
+
+    </form>
+</div>
+@section BottomScripts{
+    <script>
+    var status = '@ViewData["Status"]';
+        if (status == '1') {
+            layer.alert('操作完成！', { icon: 1 }, function () {
+                //假设这是iframe页
+                var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                parent.layer.close(index); //再执行关闭
+
+             });
+        }
+        else if (status == '-1') {
+            layer.alert('该UserCode已经存在！', { icon: 5 });
+        }
+        else if (status == '-2') {
+            layer.alert('更新失败！', { icon: 5 });
+        }
+
+
+
+    </script>
+}
+

@@ -1,0 +1,150 @@
+﻿
+@{
+    ViewData["Title"] = "用户管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>用户管理</h2>
+
+<table id="usertable" lay-filter="myusertable"></table>
+<button type="button" value="新增角色" onclick="pagefunction.editUser('新增用户')" id="btnAddUser" class="layui-btn layui-btn-sm layui-btn-green"><i class="layui-icon">&#xe608;</i>新增</button>
+
+@section BottomScripts{
+
+    @*自定义列工具条*@
+    <script type="text/html" id="usertoolbar">
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit"><i class="layui-icon">&#xe642;</i>编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i>删除</a>
+    </script>
+
+
+    <script>
+        var pagefunction = {
+
+            editUser: function (title,userId) {
+
+                layer.open({
+                    type: 2 //你可以title: ['文本', 'font-size:18px;']，数组第二项可以写任意css样式；如果你不想显示标题栏，你可以title: false
+                    , title: [title, 'font-size:18px']
+                    , content: '/User/Edit?UserId=' + userId
+                    , area: ['600px', '400px']
+                    , resize: false//是否可以拉伸
+                    //右上角关闭回调
+                    , cancel: function (index, layero) {
+                        pagefunction.cancel = true;
+                    }
+                    , end: function () {
+                        if (pagefunction.cancel) {
+                            pagefunction.cancel = false;
+                        }
+                        else {
+                            tablelns.reload();
+
+                        }
+
+                    }
+                    , closeBtn: 2
+                    , btnAlign: 'c' //居中
+
+
+                });
+            }
+
+        };
+
+
+
+        //使用方法渲染绑定table的数据
+        var table = layui.table;
+
+        //第一个实例
+        var tablelns = table.render({
+            size: 'sm',
+            elem: '#usertable'
+            //, height: 315 //容器高度
+            , url: '/User/UsersData' //数据接口
+            , request: {
+                pageName: 'PageIndex' //页码的参数名称，默认：page
+                , limitName: 'PageSize' //每页数据量的参数名，默认：limit
+            }
+            , method: 'get'
+            //, where: {
+            //传递多余的参数
+            //    delStatus:0
+            //}
+            , page: true //开启分页
+            , cols: [[ //表头
+                { field: 'userId', title: '用户Id', width: 70 }
+                , { field: 'userCode', title: '用户Code' }
+                , { field: 'userName', title: '用户名称' }
+                , { field: 'userMail', title: '用户邮箱' }
+                , { title: '操作', align: 'center', toolbar: '#usertoolbar' }
+            ]]
+            , limit: 10//每页显示的条数（默认：10）。值务必对应 limits 参数的选项。
+            //, limits: [10, 20, 30, 40, 50, 60, 70, 80, 90]
+            //无论是异步请求数据，还是直接赋值数据，都会触发该回调。你可以利用该回调做一些表格以外元素的渲染。
+            , done: function (res, curr, count) {
+                //$('.article-cd-del').parents('tr').css('color', '#cccccc'); //设置已经删除过的数据样式
+                //如果是异步请求数据方式，res即为你接口返回的信息。
+                //如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
+                //console.log(res);
+                ////得到当前页码
+                //console.log(curr);
+                ////得到数据总量
+                //console.log(count);
+            }
+        });
+
+        //监听工具条
+        table.on('tool(myusertable)', function (obj) { //注：tool是工具条事件名（相当于button的click一样），test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            //var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+
+            if (layEvent === 'del') { //删除
+
+                layer.confirm("您确定删除吗？", { icon: 3, title: '提示' }, function (index) {
+
+                    //向服务端发送删除指令
+                    $.post('/User/Delete', {
+                        "UserId": data.userId
+
+                    }, function (rd) {
+                        if (rd.status == 1) {
+                            obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                            layer.close(index); //关闭对话框
+                            //tablelns.reload();
+                        }
+                        else {
+                            layer.alert('操作失败！', { icon: 5 });
+
+                        }
+
+                    }, "json");
+                });
+            }
+            else if (layEvent === 'edit') { //编辑
+                pagefunction.editUser("编辑用户", data.userId);
+                //do something
+
+                //同步更新缓存对应的值
+                //obj.update({
+                //    articleTitle: 'wwwww' //使用这种方法可以直接更新表格中的值
+                //});
+            }
+
+        });
+
+
+
+
+
+
+
+    </script>
+
+
+}
+
+

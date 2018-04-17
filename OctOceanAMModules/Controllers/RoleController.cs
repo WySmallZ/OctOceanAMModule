@@ -30,12 +30,14 @@ namespace OctOceanAMModules.Controllers
         [HttpPost]
         public IActionResult Edit([FromForm]Sys_RoleEntity entity)
         {
-            if(_roleService.GetSys_RoleEntity(entity.RoleCode)==null)
+            //判断是否存在维护的code
+            var _tempentity = _roleService.GetSys_RoleEntity(entity.RoleCode);
+            //修改操作
+            if (entity.RoleId > 0)
             {
-                //修改操作
-                if (entity.RoleId > 0)
+                if (_tempentity == null || _tempentity.RoleId == entity.RoleId)
                 {
-                    if(_roleService.UpdateRole(entity)>0)
+                    if (_roleService.UpdateRole(entity) > 0)
                     {
                         ViewData["Status"] = 1;
                     }
@@ -46,16 +48,26 @@ namespace OctOceanAMModules.Controllers
                 }
                 else
                 {
-                    //新增
-                    _roleService.InsertRole(entity);
-                    ViewData["Status"] = 1;
+                    //已存在rolecode
+                    ViewData["Status"] = -1;
                 }
             }
             else
             {
-                //已存在rolecode
-                ViewData["Status"] = -1;
+                if (_tempentity == null)
+                {
+                    //新增
+                    _roleService.InsertRole(entity);
+                    ViewData["Status"] = 1;
+                }
+                else
+                {
+                    //已存在rolecode
+                    ViewData["Status"] = -1;
+                }
             }
+
+             
             return View();
         }
 

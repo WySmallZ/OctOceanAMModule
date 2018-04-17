@@ -1,0 +1,120 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model List<MenuViewModel>
+@section HeadScripts{
+
+    <link href="~/lib/treegrid/css/jquery.treegrid.css" rel="stylesheet" />
+    <script src="~/lib/treegrid/js/jquery.treegrid.min.js"></script>
+
+}
+
+
+
+<table class="tree layui-table" lay-size="sm">
+ 
+    <thead>
+        <tr>
+            <th>页面标题</th>
+            <th>菜单Id</th>
+            <th>页面链接</th>
+            <th>页面序号</th>
+            <th>操作</th>
+
+        </tr>
+    </thead>
+    @foreach (var vm in Model)
+    {
+    <tr class="@(vm.ParentId>0?$"treegrid-{vm.PageId} treegrid-parent-{vm.ParentId}":$"treegrid-{vm.PageId}")">
+        <td>@vm.PageTitle</td>
+        <td>@vm.PageId</td>
+        <td>@vm.PageUrl</td>
+        <td>@vm.PageSortNum</td>
+
+        <td>
+            <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add" onclick="pagefunction.editMenu(0, @vm.PageId,'新增子菜单')"><i class="layui-icon">&#xe642;</i>新增子菜单</a>
+            <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit" onclick="pagefunction.editMenu(@vm.PageId,@vm.ParentId,'编辑菜单')"><i class="layui-icon">&#xe642;</i>编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" onclick="pagefunction.deleteMenu(@vm.PageId)"><i class="layui-icon">&#xe640;</i>删除</a>
+            <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add" onclick="pagefunction.addMenuFun(@vm.PageId,'编辑页面功能')"><i class="layui-icon">&#xe642;</i>编辑页面功能</a>
+        </td>
+    </tr>
+
+    }
+
+
+</table>
+@section BottomScripts{
+    <script>
+        $('.tree').treegrid({
+            //expanderExpandedClass: 'glyphicon glyphicon-minus',
+            //expanderCollapsedClass: 'glyphicon glyphicon-plus'
+            //'initialState': 'collapsed',
+
+
+        });
+
+        var pagefunction = {
+            editMenu: function (pageid, parentId, title) {
+                layer.open({
+                    type: 2 //你可以title: ['文本', 'font-size:18px;']，数组第二项可以写任意css样式；如果你不想显示标题栏，你可以title: false
+                    , title: [title, 'font-size:18px']
+                    , content: '/Menu/Edit?PageId=' + pageid+'&ParentId='+parentId
+                    , area: ['800px', '700px']
+                    , resize: false//是否可以拉伸
+                    //右上角关闭回调
+                    , cancel: function (index, layero) {
+                        pagefunction.cancel = true;
+                    }
+                    , end: function () {
+                        if (pagefunction.cancel) {
+                            pagefunction.cancel = false;
+                        }
+                        else {
+                            window.location.reload();
+
+                        }
+
+                    }
+                    , closeBtn: 2
+                    , btnAlign: 'c' //居中
+
+
+                });
+
+            },
+            deleteMenu: function (pageid) {
+                layer.confirm("您确定删除吗？", { icon: 3, title: '提示' }, function (index) {
+
+                    //向服务端发送删除指令
+                    $.post('/Menu/Delete', {
+                        "PageId": pageid
+
+                    }, function (rd) {
+                        if (rd.status == 1) {
+                           
+                            layer.close(index); //关闭对话框
+                            window.location.reload();
+                        }
+                        else {
+                            layer.alert('操作失败！', { icon: 5 });
+
+                        }
+
+                    }, "json");
+                });
+
+            },
+            addMenuFun: function (pageid) {
+
+
+            }
+        };
+
+
+
+    </script>
+
+ 
+}

@@ -23,7 +23,9 @@ namespace OctOceanAMModules
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton(new ConfigService(Configuration.GetConnectionString("DefaultConnString")));
-            services.AddScoped<RoleService>();
+            services.AddScoped<RoleService>()
+                .AddScoped<UserService>()
+                .AddScoped<PageMenuService>();
 
 
 
