@@ -14,7 +14,7 @@
 
 
 <table class="tree layui-table" lay-size="sm">
- 
+
     <thead>
         <tr>
             <th>页面标题</th>
@@ -27,19 +27,32 @@
     </thead>
     @foreach (var vm in Model)
     {
-    <tr class="@(vm.ParentId>0?$"treegrid-{vm.PageId} treegrid-parent-{vm.ParentId}":$"treegrid-{vm.PageId}")">
-        <td>@vm.PageTitle</td>
-        <td>@vm.PageId</td>
-        <td>@vm.PageUrl</td>
-        <td>@vm.PageSortNum</td>
+        <tr class="@(vm.ParentId > 0 ? $"treegrid-{vm.PageId} treegrid-parent-{vm.ParentId}" : $"treegrid-{vm.PageId}")">
+            <td>@vm.PageTitle</td>
+            <td>@vm.PageId</td>
+            <td>@vm.PageUrl</td>
+            <td>@vm.PageSortNum</td>
 
-        <td>
-            <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add" onclick="pagefunction.editMenu(0, @vm.PageId,'新增子菜单')"><i class="layui-icon">&#xe642;</i>新增子菜单</a>
-            <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit" onclick="pagefunction.editMenu(@vm.PageId,@vm.ParentId,'编辑菜单')"><i class="layui-icon">&#xe642;</i>编辑</a>
-            <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" onclick="pagefunction.deleteMenu(@vm.PageId)"><i class="layui-icon">&#xe640;</i>删除</a>
-            <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add" onclick="pagefunction.addMenuFun(@vm.PageId,'编辑页面功能')"><i class="layui-icon">&#xe642;</i>编辑页面功能</a>
-        </td>
-    </tr>
+            <td>
+                @{
+                    if (vm.Funs!=null&&vm.Funs.Any(f => f.MenuPageId == vm.PageId))
+                    {
+
+
+                    }
+                    else
+                    {
+                        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add" onclick="pagefunction.editMenu(0, @vm.PageId,'新增子菜单')"><i class="layui-icon">&#xe642;</i>新增子菜单</a>
+
+                    }
+
+                }
+
+                <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit" onclick="pagefunction.editMenu(@vm.PageId,@vm.ParentId,'编辑菜单')"><i class="layui-icon">&#xe642;</i>编辑</a>
+                <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" onclick="pagefunction.deleteMenu(@vm.PageId)"><i class="layui-icon">&#xe640;</i>删除</a>
+                <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add" onclick="pagefunction.addMenuFun(@vm.PageId,'编辑页面功能')"><i class="layui-icon">&#xe642;</i>编辑页面功能</a>
+            </td>
+        </tr>
 
     }
 
@@ -60,8 +73,8 @@
                 layer.open({
                     type: 2 //你可以title: ['文本', 'font-size:18px;']，数组第二项可以写任意css样式；如果你不想显示标题栏，你可以title: false
                     , title: [title, 'font-size:18px']
-                    , content: '/Menu/Edit?PageId=' + pageid+'&ParentId='+parentId
-                    , area: ['800px', '700px']
+                    , content: '/Menu/Edit?PageId=' + pageid + '&ParentId=' + parentId
+                    , area: ['800px', '600px']
                     , resize: false//是否可以拉伸
                     //右上角关闭回调
                     , cancel: function (index, layero) {
@@ -93,7 +106,7 @@
 
                     }, function (rd) {
                         if (rd.status == 1) {
-                           
+
                             layer.close(index); //关闭对话框
                             window.location.reload();
                         }
@@ -116,5 +129,5 @@
 
     </script>
 
- 
+
 }

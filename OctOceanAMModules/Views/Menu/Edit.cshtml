@@ -5,47 +5,40 @@
 }
 @model OctOceanAMModules.Entity.Sys_PageUrlEntity
 <div style="padding:20px;">
-    <form method="post" class="layui-form layui-form-pane">
+    <form method="post" class="layui-form layui-form-pane" onsubmit="return getmeunfunvalue()">
         <input asp-for="PageId" type="hidden" />
 
         <div class="layui-form-item">
             <label class="layui-form-label">页面标题:</label>
             <div class="layui-input-block">
-                <input asp-for="PageTitle" type="text"  required lay-verify="required"  autocomplete="off" class="layui-input">
+                <input asp-for="PageTitle" type="text" required lay-verify="required" autocomplete="off" class="layui-input">
             </div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">页面链接:</label>
             <div class="layui-input-block">
-                <input asp-for="PageUrl" type="text"  required lay-verify="required" autocomplete="off" class="layui-input">
+                <input asp-for="PageUrl" type="text" required lay-verify="required" autocomplete="off" class="layui-input">
             </div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">父级菜单Id:</label>
             <div class="layui-input-block">
-                <input asp-for="ParentMenuPageId" type="text"   required lay-verify="required" placeholder="只能输入数字" autocomplete="off" class="layui-input">
+                <input asp-for="ParentMenuPageId" type="text" required lay-verify="required" placeholder="只能输入数字" autocomplete="off" class="layui-input">
             </div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">菜单序号:</label>
-            <div class="layui-input-block"> 
-                <input asp-for="MenuSortNum" type="text"   required lay-verify="required"  placeholder="只能输入数字"  autocomplete="off" class="layui-input">
+            <div class="layui-input-block">
+                <input asp-for="MenuSortNum" type="text" required lay-verify="required" placeholder="只能输入数字" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item layui-form-text">
             <label class="layui-form-label">页面功能</label>
             <div class="layui-input-block">
                 <div class="layui-textarea" style="  min-height:190px;">
-                    @*<div class="layui-container">
-            <div class="layui-row">
-                <div class="layui-col-xs-4">功能Code</div>
-                <div class="layui-col-xs-4">功能名称</div>
-                <div class="layui-col-xs-4">菜单</div>
-            </div>
-        </div>*@
                     <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit" id="btnAddFun"><i class="layui-icon">&#xe642;</i>添加功能</a>
                     <table class="layui-table" lay-size="sm">
                         <thead>
@@ -57,9 +50,26 @@
                             </tr>
                         </thead>
                         <tbody id="myfuntbody">
-                            
+                            @{
+                                if (Model.PageFuns!=null)
+                                {
+                                    foreach (var fun in Model.PageFuns)
+                                    {
+                                        <tr id="@("systr_" + fun.FunId)" data-funid="@fun.FunId">
+                                            <td><input type="text" name="funcode" required lay-verify="required" value="@fun.FunCode" /></td>
+
+                                            <td><input type="text" name="funname" required lay-verify="required" value="@fun.FunName" /></td>
+
+                                            <td><input type="checkbox" lay-ignore style="display: inline;" checked="@fun.IsFunMenuStatus" /></td>
+
+                                            <td><a class="layui-btn layui-btn-xs layui-btn-danger" onclick="removefun('@("systr_" + fun.FunId)')"><i class="layui-icon">&#xe640;</i>移除</a></td>
+                                        </tr>
+                                    }
+                                }
+                            }
                         </tbody>
                     </table>
+                    <input type="hidden" name="menufuns" id="menufuns" />
 
 
 
@@ -84,7 +94,28 @@
 </div>
 @section BottomScripts{
     <script>
- 
+        var getmeunfunvalue = function () {
+
+            var funvalue = [];
+
+            $('#myfuntbody').children('tr').each(function () {
+                funvalue.push(
+                    {
+                        FunId: $(this).attr('data-funid'),
+                        FunCode: $(this).find('input[name="funcode"]').val(),
+                        FunName: $(this).find('input[name="funname"]').val(),
+                        IsFunMenu: $(this).find('input:checkbox')[0].checked?1:0
+                    }
+                );
+            });
+
+            $('#menufuns').val(JSON.stringify(funvalue));
+
+            return true;
+
+        }
+
+
 
     var status = '@ViewData["Status"]';
         if (status == '1') {
@@ -102,9 +133,8 @@
             layer.alert('更新失败！', { icon: 5 });
         }
 
-        var removefun = function (id) {
-             
-            $('#'+id).remove();
+        var removefun = function (trid) {
+            $('#' + trid).remove();
 
          }
 
@@ -113,19 +143,19 @@
 
             $('#myfuntbody').append(
                 '<tr id="' + trid + '">'+
-                    '<td><input type="text" /></td>'+
-                    '<td><input type="text" /></td>'+
+                    '<td><input type="text" name="funcode" required lay-verify="required"/></td>'+
+                    '<td><input type="text" name="funname" required lay-verify="required"/></td>'+
                 '<td><input type="checkbox" style="display: inline;"/></td>' +
                 '<td><a class="layui-btn layui-btn-xs layui-btn-danger" onclick="removefun(\'' + trid + '\')" ><i class="layui-icon">&#xe640;</i>移除</a></td></tr>'
 
             );
 
-         
+
 
         });
 
 
-        
+
 
     </script>
 }

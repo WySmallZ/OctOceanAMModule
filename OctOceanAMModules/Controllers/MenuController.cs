@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using OctOceanAMModules.DataServices;
 using OctOceanAMModules.Entity;
 using OctOceanAMModules.Models;
@@ -27,7 +28,8 @@ namespace OctOceanAMModules.Controllers
                 PageUrl = entity.Sys_PageUrl.PageUrl,
                 ParentId = entity.Sys_PageUrl.ParentMenuPageId,
                 PageSortNum = entity.Sys_PageUrl.MenuSortNum,
-                PageTitle = entity.Sys_PageUrl.PageTitle
+                PageTitle = entity.Sys_PageUrl.PageTitle,
+                Funs=entity.Sys_PageUrl.PageFuns
 
             };
             menuList.Add(vm);
@@ -46,7 +48,8 @@ namespace OctOceanAMModules.Controllers
                         PageUrl = _entity.PageUrl,
                         ParentId = _entity.ParentMenuPageId,
                         PageSortNum = _entity.MenuSortNum,
-                        PageTitle = _entity.PageTitle
+                        PageTitle = _entity.PageTitle,
+                        Funs=_entity.PageFuns
 
                     };
 
@@ -77,7 +80,7 @@ namespace OctOceanAMModules.Controllers
         [HttpGet]
         public IActionResult Edit(int PageId, int ParentId = 0)
         {
-
+            
             var entity = _pageMenuService.GetSys_PageUrlEntity(PageId);
             if (entity == null)
             {
@@ -93,16 +96,26 @@ namespace OctOceanAMModules.Controllers
 
 
         [HttpPost]
-        public IActionResult Edit([FromForm]Sys_PageUrlEntity entity)
+        public IActionResult Edit([FromForm]Sys_PageUrlEntity entity,string menufuns)
         {
-            //判断是否存在维护的code
-            var _tempentity = _pageMenuService.GetSys_PageUrlEntity(entity.PageTitle, entity.ParentMenuPageId);
+           var fs = JsonConvert.DeserializeObject<List<Sys_PageFunEntity>>(menufuns);
+            if (fs != null)
+            {
+                fs.ForEach(f => f.PageId = entity.PageId);
+                entity.PageFuns = fs;
+            }
+
+
+            int PageId = entity.PageId;
+
+           //判断是否存在维护的code
+           var _tempentity = _pageMenuService.GetSys_PageUrlEntity(entity.PageTitle, entity.ParentMenuPageId);
             //修改操作
             if (entity.PageId > 0)
             {
                 if (_tempentity == null || _tempentity.PageId == entity.PageId)
                 {
-                    if (_pageMenuService.UpdateSys_PageUrl(entity) > 0)
+                    if (_pageMenuService.UpdateSys_PageUrl(entity))
                     {
                         ViewData["Status"] = 1;
                     }
@@ -122,7 +135,7 @@ namespace OctOceanAMModules.Controllers
                 if (_tempentity == null)
                 {
                     //新增
-                    _pageMenuService.InsertSys_PageUrl(entity);
+                    _pageMenuService.InsertSys_PageUrl(entity,out PageId);
                     ViewData["Status"] = 1;
                 }
                 else
@@ -133,7 +146,7 @@ namespace OctOceanAMModules.Controllers
             }
 
 
-            return View();
+            return View(_pageMenuService.GetSys_PageUrlEntity(PageId));
         }
 
 

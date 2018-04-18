@@ -11,5 +11,13 @@ namespace OctOceanAMModules.Entity
         public int PageId { get; set; }
         public string FunCode { get; set; }
         public string FunName { get; set; }
+
+        public int IsFunMenu { get; set; }
+
+        public int MenuPageId { get; set; }
+
+        public bool IsFunMenuStatus => IsFunMenu > 0;
+
+
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OctOceanAMModules.Entity;
 
 namespace OctOceanAMModules.Models
 {
@@ -14,6 +15,10 @@ namespace OctOceanAMModules.Models
         public string PageTitle { get; set; }
 
         public int PageSortNum { get; set; }
+
+        public IList<Sys_PageFunEntity> Funs { get; set; }
+
+
         
     }
 }
