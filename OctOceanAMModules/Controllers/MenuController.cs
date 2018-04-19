@@ -103,6 +103,9 @@ namespace OctOceanAMModules.Controllers
         [HttpPost]
         public IActionResult Edit([FromForm]Sys_PageUrlEntity entity, string menufuns)
         {
+
+            //todo:验证输入的父级菜单ID是否有效
+
             var fs = JsonConvert.DeserializeObject<List<Sys_PageFunEntity>>(menufuns);
             if (fs != null)
             {
