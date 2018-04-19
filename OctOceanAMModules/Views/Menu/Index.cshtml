@@ -18,29 +18,44 @@
     <thead>
         <tr>
             <th>页面标题</th>
-            <th>菜单Id</th>
-            <th>页面链接</th>
-            <th>页面序号</th>
-            <th>操作</th>
-
+            <th width="220px">操作</th>
+            <th width="25px">Id</th>
+            <th>链接</th>
+            <th width="25px">序号</th>
+            <th>页面功能</th>
         </tr>
     </thead>
     @foreach (var vm in Model)
     {
+
+
         <tr class="@(vm.ParentId > 0 ? $"treegrid-{vm.PageId} treegrid-parent-{vm.ParentId}" : $"treegrid-{vm.PageId}")">
-            <td>@vm.PageTitle</td>
-            <td>@vm.PageId</td>
-            <td>@vm.PageUrl</td>
-            <td>@vm.PageSortNum</td>
+            <td>
+                @if (vm.IsFunPage)
+                {
+                    <span class="layui-btn layui-btn-xs layui-btn-primary">
+                        @vm.PageTitle
+                        <i class="fa fa-cogs" aria-hidden="true" style="color:#1e9fff;" title="页面内嵌功能链接"></i>
+                    </span>
+                }
+                else
+                {
+
+                    @vm.PageTitle
+                    if (!vm.HasChirldPageUrl)
+                    {
+                        <i class="fa fa-file-o" aria-hidden="true" style="color:#1e9fff;" title="主页面链接"></i>
+
+                    }
+
+                }
+
+            </td>
+
 
             <td>
                 @{
-                    if (vm.Funs!=null&&vm.Funs.Any(f => f.MenuPageId == vm.PageId))
-                    {
-
-
-                    }
-                    else
+                    if (!vm.IsFunPage)
                     {
                         <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add" onclick="pagefunction.editMenu(0, @vm.PageId,'新增子菜单')"><i class="layui-icon">&#xe642;</i>新增子菜单</a>
 
@@ -50,7 +65,33 @@
 
                 <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit" onclick="pagefunction.editMenu(@vm.PageId,@vm.ParentId,'编辑菜单')"><i class="layui-icon">&#xe642;</i>编辑</a>
                 <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" onclick="pagefunction.deleteMenu(@vm.PageId)"><i class="layui-icon">&#xe640;</i>删除</a>
-                <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add" onclick="pagefunction.addMenuFun(@vm.PageId,'编辑页面功能')"><i class="layui-icon">&#xe642;</i>编辑页面功能</a>
+
+            </td>
+            <td>@vm.PageId</td>
+            <td>@vm.PageUrl</td>
+            <td>@vm.PageSortNum</td>
+            <td>
+                @if (vm.Funs != null && vm.Funs.Any())
+                {
+                    foreach (var fn in vm.Funs)
+                    {
+
+                        <span style="border:1px solid #c4bebe; padding:2px; margin-right:3px;">
+                            @fn.FunName
+                            @if (fn.IsFunMenuStatus)
+                            {
+
+                                <i class="fa fa-cogs" aria-hidden="true" title="页面内嵌功能链接"></i>
+
+                            }
+                        </span>
+
+                    }
+
+
+
+                }
+
             </td>
         </tr>
 
@@ -61,8 +102,9 @@
 @section BottomScripts{
     <script>
         $('.tree').treegrid({
-            //expanderExpandedClass: 'glyphicon glyphicon-minus',
-            //expanderCollapsedClass: 'glyphicon glyphicon-plus'
+            //expanderTemplate:'<span class =“treegrid-expander”> </span>'
+            expanderExpandedClass: 'fa fa-folder-open-o',
+            expanderCollapsedClass: 'fa fa-folder',
             //'initialState': 'collapsed',
 
 
@@ -118,11 +160,8 @@
                     }, "json");
                 });
 
-            },
-            addMenuFun: function (pageid) {
-
-
             }
+
         };
 
 

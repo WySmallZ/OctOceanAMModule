@@ -29,19 +29,23 @@ namespace OctOceanAMModules.Controllers
                 ParentId = entity.Sys_PageUrl.ParentMenuPageId,
                 PageSortNum = entity.Sys_PageUrl.MenuSortNum,
                 PageTitle = entity.Sys_PageUrl.PageTitle,
-                Funs=entity.Sys_PageUrl.PageFuns
+                Funs = entity.Sys_PageUrl.PageFuns,
+                HasChirldPageUrl = (entity.ChirldMenuPageUrls != null && entity.ChirldMenuPageUrls.Count > 0),
+                 IsFunPage=entity.Sys_PageUrl.IsFunPageStatus
 
             };
             menuList.Add(vm);
 
             foreach (var _entity in entity.ChirldMenuPageUrls.OrderBy(a => a.MenuSortNum).ToList())
             {
+                //如果该页面是父级页面，就继续递归添加子级
                 if (dic.ContainsKey(_entity.PageId))
                 {
                     AddMenu(dic[_entity.PageId], dic, menuList);
                 }
                 else
                 {
+                    //如果不是父级页面，添加本身
                     MenuViewModel vm2 = new MenuViewModel()
                     {
                         PageId = _entity.PageId,
@@ -49,8 +53,9 @@ namespace OctOceanAMModules.Controllers
                         ParentId = _entity.ParentMenuPageId,
                         PageSortNum = _entity.MenuSortNum,
                         PageTitle = _entity.PageTitle,
-                        Funs=_entity.PageFuns
-
+                        Funs = _entity.PageFuns,
+                        HasChirldPageUrl = false,
+                        IsFunPage =_entity.IsFunPageStatus
                     };
 
                     menuList.Add(vm2);
@@ -66,7 +71,7 @@ namespace OctOceanAMModules.Controllers
         {
             List<MenuViewModel> MenuList = new List<MenuViewModel>();
             Dictionary<int, Sys_PageMenuEntity> dic = _pageMenuService.getSys_PageMenuEntityDic();
-            
+
             foreach (int pageId in dic.Keys)
             {
                 if (MenuList.FirstOrDefault(a => a.PageId == pageId) == null)
@@ -80,7 +85,7 @@ namespace OctOceanAMModules.Controllers
         [HttpGet]
         public IActionResult Edit(int PageId, int ParentId = 0)
         {
-            
+
             var entity = _pageMenuService.GetSys_PageUrlEntity(PageId);
             if (entity == null)
             {
@@ -90,15 +95,15 @@ namespace OctOceanAMModules.Controllers
         }
 
 
-          
+
 
 
 
 
         [HttpPost]
-        public IActionResult Edit([FromForm]Sys_PageUrlEntity entity,string menufuns)
+        public IActionResult Edit([FromForm]Sys_PageUrlEntity entity, string menufuns)
         {
-           var fs = JsonConvert.DeserializeObject<List<Sys_PageFunEntity>>(menufuns);
+            var fs = JsonConvert.DeserializeObject<List<Sys_PageFunEntity>>(menufuns);
             if (fs != null)
             {
                 fs.ForEach(f => f.PageId = entity.PageId);
@@ -108,8 +113,8 @@ namespace OctOceanAMModules.Controllers
 
             int PageId = entity.PageId;
 
-           //判断是否存在维护的code
-           var _tempentity = _pageMenuService.GetSys_PageUrlEntity(entity.PageTitle, entity.ParentMenuPageId);
+            //判断是否存在维护的code
+            var _tempentity = _pageMenuService.GetSys_PageUrlEntity(entity.PageTitle, entity.ParentMenuPageId);
             //修改操作
             if (entity.PageId > 0)
             {
@@ -135,7 +140,7 @@ namespace OctOceanAMModules.Controllers
                 if (_tempentity == null)
                 {
                     //新增
-                    _pageMenuService.InsertSys_PageUrl(entity,out PageId);
+                    _pageMenuService.InsertSys_PageUrl(entity, out PageId);
                     ViewData["Status"] = 1;
                 }
                 else
@@ -149,7 +154,7 @@ namespace OctOceanAMModules.Controllers
             return View(_pageMenuService.GetSys_PageUrlEntity(PageId));
         }
 
-
+        //TODO:要递归删除所有项
         public async Task<object> Delete(int PageId)
         {
             //删除角色

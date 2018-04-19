@@ -31,7 +31,9 @@ namespace OctOceanAMModules.Entity
         /// 菜单排序的序号
         /// </summary>
         public int MenuSortNum { get; set; }
- 
+        
+        public int IsFunPage { get; set; }
+        public bool IsFunPageStatus => IsFunPage > 0;
 
 
         public IList<Sys_PageFunEntity> PageFuns { get; set; }

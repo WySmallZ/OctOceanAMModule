@@ -28,9 +28,10 @@ namespace OctOceanAMModules.DataServices
             List<Sys_PageUrlEntity> pageUrlList = new List<Sys_PageUrlEntity>();
             Dictionary<int, List<Sys_PageFunEntity>> dic_pageId_FunEntity = new Dictionary<int, List<Sys_PageFunEntity>>();
 
+
             string sql = @"
-SELECT FunId,PageId,FunCode,FunName,IsFunMenu,MenuPageId FROM Sys_PageFun;
-SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  ORDER BY ParentMenuPageId ASC,MenuSortNum ASC;"; //排序必不可少
+SELECT FunId,PageId,FunCode,FunName,HasNewPage,NewPageId FROM Sys_PageFun;
+SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum,IsFunPage FROM Sys_PageUrl  ORDER BY ParentMenuPageId ASC,MenuSortNum ASC;"; //排序必不可少
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();
@@ -40,12 +41,12 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                     pageUrlList = multi.Read<Sys_PageUrlEntity>().ToList();
                 }
             }
+            //定义一个键值对，该键为拥有子页面的父级PageId 
+            Dictionary<int, Sys_PageMenuEntity> dic_parentpageId_menuentity = new Dictionary<int, Sys_PageMenuEntity>();
 
-            Dictionary<int, Sys_PageMenuEntity> dic_pageId_menuentity = new Dictionary<int, Sys_PageMenuEntity>();
             foreach (var urlentity in pageUrlList)
             {
-
-                urlentity.PageFuns = dic_pageId_FunEntity.ContainsKey(urlentity.ParentMenuPageId) ? dic_pageId_FunEntity[urlentity.ParentMenuPageId] : null;
+                urlentity.PageFuns = dic_pageId_FunEntity.ContainsKey(urlentity.PageId) ? dic_pageId_FunEntity[urlentity.PageId] : null;
 
 
 
@@ -53,13 +54,13 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                 if (urlentity.ParentMenuPageId > 0)
                 {
                     //如果不是根链接，是子链接，因为上面排序规则，实际执行时，并不会走该if中的语句
-                    if (!dic_pageId_menuentity.ContainsKey(urlentity.ParentMenuPageId))
+                    if (!dic_parentpageId_menuentity.ContainsKey(urlentity.ParentMenuPageId))
                     {
                         //查找根链接
                         var pe = pageUrlList.FirstOrDefault(u => u.PageId == urlentity.ParentMenuPageId);
                         if (pe != null)
                         {
-                            dic_pageId_menuentity.Add(urlentity.ParentMenuPageId
+                            dic_parentpageId_menuentity.Add(urlentity.ParentMenuPageId
                             , new Sys_PageMenuEntity()
                             {
                                 PageId = urlentity.ParentMenuPageId,
@@ -68,26 +69,25 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                 ChirldMenuPageUrls = new List<Sys_PageUrlEntity>()
                             });
 
-                            dic_pageId_menuentity[urlentity.ParentMenuPageId].ChirldMenuPageUrls.Add(urlentity);
+                            dic_parentpageId_menuentity[urlentity.ParentMenuPageId].ChirldMenuPageUrls.Add(urlentity);
                         }
                     }
                     else
                     {
-                        dic_pageId_menuentity[urlentity.ParentMenuPageId].ChirldMenuPageUrls.Add(urlentity);
+                        dic_parentpageId_menuentity[urlentity.ParentMenuPageId].ChirldMenuPageUrls.Add(urlentity);
                     }
 
                 }
                 else
                 {
                     //如果是根链接
-                    if (!dic_pageId_menuentity.ContainsKey(urlentity.PageId))
+                    if (!dic_parentpageId_menuentity.ContainsKey(urlentity.PageId))
                     {
-                        dic_pageId_menuentity.Add(urlentity.PageId
+                        dic_parentpageId_menuentity.Add(urlentity.PageId
                             , new Sys_PageMenuEntity()
                             {
                                 PageId = urlentity.PageId,
                                 Sys_PageUrl = urlentity,
-
                                 ChirldMenuPageUrls = new List<Sys_PageUrlEntity>()
                             });
                     }
@@ -97,7 +97,7 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
 
 
             }
-            return dic_pageId_menuentity;
+            return dic_parentpageId_menuentity;
 
 
 
@@ -111,10 +111,10 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
         public bool InsertSys_PageUrl(Sys_PageUrlEntity _sys_PageUrlEntity, out int PageId)
         {
             PageId = 0;
-            string sql = "INSERT INTO Sys_PageUrl ( PageUrl,PageTitle, ParentMenuPageId,MenuSortNum ) VALUES  (@PageUrl, @PageTitle,@ParentMenuPageId,  @MenuSortNum);SELECT @@IDENTITY;";
+            string sql = "INSERT INTO Sys_PageUrl ( PageUrl,PageTitle, ParentMenuPageId,MenuSortNum,IsFunPage ) VALUES  (@PageUrl, @PageTitle,@ParentMenuPageId,  @MenuSortNum,@IsFunPage);SELECT @@IDENTITY;";
 
 
-            string insertsql = "INSERT INTO Sys_PageFun(PageId, FunCode, FunName, IsFunMenu,MenuPageId) VALUES(@PageId, @FunCode, @FunName, @IsFunMenu,@MenuPageId);";
+            string insertsql = "INSERT INTO Sys_PageFun(PageId, FunCode, FunName, HasNewPage,NewPageId) VALUES(@PageId, @FunCode, @FunName, @HasNewPage,@NewPageId);";
 
             using (SqlConnection conn = new SqlConnection(this.SqlConnectionString))
             {
@@ -129,7 +129,8 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                             PageUrl = _sys_PageUrlEntity.PageUrl,
                             PageTitle = _sys_PageUrlEntity.PageTitle,
                             ParentMenuPageId = _sys_PageUrlEntity.ParentMenuPageId,
-                            MenuSortNum = _sys_PageUrlEntity.MenuSortNum
+                            MenuSortNum = _sys_PageUrlEntity.MenuSortNum,
+                            IsFunPage = _sys_PageUrlEntity.IsFunPage
                         }, tran);
 
                         int _pageId = Convert.ToInt32(_objpageId);
@@ -149,7 +150,8 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                         PageUrl = "",
                                         PageTitle = $"{pue.FunName}-未配置",
                                         ParentMenuPageId = _pageId,
-                                        MenuSortNum = 100
+                                        MenuSortNum = 100,
+                                        IsFunPage = 1
                                     }, tran));
                                 }
                                 conn.Execute(insertsql, new
@@ -157,8 +159,8 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                     PageId = _pageId,
                                     FunCode = pue.FunCode,
                                     FunName = pue.FunName,
-                                    IsFunMenu = pue.IsFunMenuStatus ? 1 : 0,
-                                    MenuPageId = menupageid
+                                    HasNewPage = pue.IsFunMenuStatus ? 1 : 0,
+                                    NewPageId = menupageid
                                 }, tran);
 
                             }
@@ -184,18 +186,18 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
         public bool UpdateSys_PageUrl(Sys_PageUrlEntity _sys_PageUrlEntity)
         {
             //查询出旧的数据
-            var oldFunEntityList = GetSys_PageFunEntityList(_sys_PageUrlEntity.PageId);
-            var oldfunId = oldFunEntityList.Select(a => a.FunId).ToArray();
+            var oldpageurlentity = GetSys_PageUrlEntity(_sys_PageUrlEntity.PageId);
+            var oldfunId = oldpageurlentity.PageFuns.Select(a => a.FunId).ToArray();
             var newfunId = _sys_PageUrlEntity.PageFuns?.Select(b => b.FunId).ToArray();
 
 
-            string insert_menu_sql = "INSERT INTO Sys_PageUrl ( PageUrl,PageTitle, ParentMenuPageId, MenuSortNum ) VALUES  (@PageUrl, @PageTitle,@ParentMenuPageId,@MenuSortNum);SELECT @@IDENTITY;";
-            string update_menu_sql = "UPDATE Sys_PageUrl SET PageUrl=@PageUrl,PageTitle=@PageTitle,ParentMenuPageId=@ParentMenuPageId,MenuSortNum=@MenuSortNum  WHERE PageId=@PageId";
-            string delete_menu_sql = "DELETE FROM Sys_PageUrl WHERE PageId=@PageId;";
+            string insert_menu_sql = "INSERT INTO Sys_PageUrl ( PageUrl,PageTitle, ParentMenuPageId, MenuSortNum,IsFunPage ) VALUES  (@PageUrl, @PageTitle,@ParentMenuPageId,@MenuSortNum,@IsFunPage);SELECT @@IDENTITY;";
+            string update_menu_sql = "UPDATE Sys_PageUrl SET PageUrl=@PageUrl,PageTitle=@PageTitle,ParentMenuPageId=@ParentMenuPageId,MenuSortNum=@MenuSortNum,IsFunPage=@IsFunPage  WHERE PageId=@PageId";
+            string delete_menu_sql = "DELETE FROM Sys_PageUrl WHERE PageId=@PageId Or ParentMenuPageId=@PageId; DELETE FROM Sys_PageFun WHERE PageId=@PageId;";
 
             string del_fun_sql = "DELETE FROM Sys_PageFun WHERE FunId = @FunId;";
-            string insert_fun_sql = "INSERT INTO Sys_PageFun(PageId, FunCode, FunName, IsFunMenu,MenuPageId) VALUES(@PageId, @FunCode, @FunName, @IsFunMenu,@MenuPageId);";
-            string update_fun_sql = "UPDATE Sys_PageFun SET PageId = @PageId, FunCode = @FunCode, FunName = @FunName, IsFunMenu = @IsFunMenu,MenuPageId=@MenuPageId WHERE FunId=@FunId;";
+            string insert_fun_sql = "INSERT INTO Sys_PageFun(PageId, FunCode, FunName, HasNewPage,NewPageId) VALUES(@PageId, @FunCode, @FunName, @HasNewPage,@NewPageId);";
+            string update_fun_sql = "UPDATE Sys_PageFun SET PageId = @PageId, FunCode = @FunCode, FunName = @FunName, HasNewPage = @HasNewPage,NewPageId=@NewPageId WHERE FunId=@FunId;";
 
             using (var connection = new SqlConnection(SqlConnectionString))
             {
@@ -211,12 +213,32 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                             PageTitle = _sys_PageUrlEntity.PageTitle,
                             PageUrl = _sys_PageUrlEntity.PageUrl,
                             ParentMenuPageId = _sys_PageUrlEntity.ParentMenuPageId,
-                            MenuSortNum = _sys_PageUrlEntity.MenuSortNum
+                            MenuSortNum = _sys_PageUrlEntity.MenuSortNum,
+                            IsFunPage = oldpageurlentity.IsFunPageStatus ? 1 : 0
                         }, tran);
 
+                        if (oldpageurlentity.PageFuns != null)
+                        {
+                            //执行功能菜单的删除操作//查询出旧的在新的不存在的funid，即要删除的FunId
+                            foreach (var oldpf in oldpageurlentity.PageFuns)
+                            {
+                                //如果新的不存在旧的数据，就先删除旧的
+                                if (!newfunId.Contains(oldpf.FunId))
+                                {
+                                    //判断是否是功能链接
+                                    if (oldpf.IsFunMenuStatus)
+                                    {
+                                        //先删除链接数据
+                                        connection.Execute(delete_menu_sql, new { PageId = oldpf.NewPageId }, tran);
+                                    }
 
-                        //执行功能菜单的删除操作//查询出旧的在新的不存在的funid，即要删除的FunId
-                        connection.Execute(del_fun_sql, oldfunId.Where(c => newfunId.Contains(c) == false).Select(id => new { FunId = id }), tran);
+                                    //再删除本身
+                                    connection.Execute(del_fun_sql, new { FunId = oldpf.FunId }, tran);
+                                }
+                            }
+                        }
+
+
 
                         //遍历新的数据，判断是修改操作还是新增操作
                         if (_sys_PageUrlEntity.PageFuns != null)
@@ -226,7 +248,7 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                 //如果是修改操作
                                 if (oldfunId.Contains(pue.FunId))
                                 {
-                                    var oldfe = oldFunEntityList.First(o => o.FunId == pue.FunId);
+                                    var oldfe = oldpageurlentity.PageFuns.First(o => o.FunId == pue.FunId);
                                     if (pue.IsFunMenuStatus)
                                     {
                                         //如果新的有关联菜单，旧的也有
@@ -238,9 +260,9 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                                 PageId = _sys_PageUrlEntity.PageId,
                                                 FunCode = pue.FunCode,
                                                 FunName = pue.FunName,
-                                                IsFunMenu = 1,
+                                                HasNewPage = 1,
                                                 FunId = pue.FunId,
-                                                MenuPageId = oldfe.MenuPageId
+                                                NewPageId = oldfe.NewPageId
                                             }, tran);
                                         }
                                         else
@@ -252,7 +274,8 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                                 PageUrl = "",
                                                 PageTitle = $"{pue.FunName}-未配置",
                                                 ParentMenuPageId = _sys_PageUrlEntity.PageId,
-                                                MenuSortNum = 100
+                                                MenuSortNum = 100,
+                                                IsFunPage = 1
                                             }, tran));
                                             //修改新的菜单
                                             connection.Execute(update_fun_sql, new
@@ -260,9 +283,9 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                                 PageId = _sys_PageUrlEntity.PageId,
                                                 FunCode = pue.FunCode,
                                                 FunName = pue.FunName,
-                                                IsFunMenu = 1,
+                                                HasNewPage = 1,
                                                 FunId = pue.FunId,
-                                                MenuPageId = _menupageId
+                                                NewPageId = _menupageId
                                             }, tran);
 
 
@@ -274,7 +297,7 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                         if (oldfe.IsFunMenuStatus)
                                         {
                                             //删除旧的关联菜单
-                                            connection.Execute(delete_menu_sql, new { PageId = oldfe.MenuPageId }, tran);
+                                            connection.Execute(delete_menu_sql, new { PageId = oldfe.NewPageId }, tran);
                                         }
                                         //修改fun
                                         connection.Execute(update_fun_sql, new
@@ -282,9 +305,9 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                             PageId = _sys_PageUrlEntity.PageId,
                                             FunCode = pue.FunCode,
                                             FunName = pue.FunName,
-                                            IsFunMenu = 0,
+                                            HasNewPage = 0,
                                             FunId = pue.FunId,
-                                            MenuPageId = 0
+                                            NewPageId = 0
                                         }, tran);
                                     }
                                 }
@@ -301,7 +324,8 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                             PageUrl = "",
                                             PageTitle = $"{pue.FunName}-未配置",
                                             ParentMenuPageId = _sys_PageUrlEntity.PageId,
-                                            MenuSortNum = 100
+                                            MenuSortNum = 100,
+                                            IsFunPage = 1
                                         }, tran));
                                     }
 
@@ -311,8 +335,8 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                                         PageId = _sys_PageUrlEntity.PageId,
                                         FunCode = pue.FunCode,
                                         FunName = pue.FunName,
-                                        IsFunMenu = pue.IsFunMenuStatus ? 1 : 0,
-                                        MenuPageId = _pageid
+                                        HasNewPage = pue.IsFunMenuStatus ? 1 : 0,
+                                        NewPageId = _pageid
                                     }, tran);
                                 }
                             }
@@ -330,12 +354,7 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
                         return false;
                     }
 
-
-
-
                 }
-
-
 
             }
         }
@@ -343,7 +362,7 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
 
         public async Task<int> DeleteSys_PageUrlAsync(int PageId)
         {
-            string sql = "DELETE FROM Sys_PageUrl  WHERE PageId=@PageId Or ParentMenuPageId=@PageId ";
+            string sql = "DELETE FROM Sys_PageUrl  WHERE PageId=@PageId Or ParentMenuPageId=@PageId; DELETE FROM Sys_PageFun WHERE PageId=@PageId OR NewPageId=@PageId ";
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();
@@ -361,8 +380,8 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl  O
             IList<Sys_PageFunEntity> funs = null;
 
             string sql = @" 
-SELECT PageId, PageUrl, PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl WHERE PageId=@PageId;
-SELECT FunId,PageId,FunCode,FunName,IsFunMenu,MenuPageId FROM Sys_PageFun WHERE PageId=@PageId;";
+SELECT PageId, PageUrl, PageTitle,ParentMenuPageId,MenuSortNum,IsFunPage FROM Sys_PageUrl WHERE PageId=@PageId;
+SELECT FunId,PageId,FunCode,FunName,HasNewPage,NewPageId FROM Sys_PageFun WHERE PageId=@PageId;";
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();
@@ -384,7 +403,7 @@ SELECT FunId,PageId,FunCode,FunName,IsFunMenu,MenuPageId FROM Sys_PageFun WHERE 
 
         public Sys_PageUrlEntity GetSys_PageUrlEntity(string PageTitle, int ParentMenuPageId)
         {
-            string sql = " SELECT PageId, PageUrl, PageTitle,ParentMenuPageId,MenuSortNum FROM Sys_PageUrl WHERE PageTitle=@PageTitle AND ParentMenuPageId=@ParentMenuPageId";
+            string sql = " SELECT PageId, PageUrl, PageTitle,ParentMenuPageId,MenuSortNum,IsFunPage FROM Sys_PageUrl WHERE PageTitle=@PageTitle AND ParentMenuPageId=@ParentMenuPageId";
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();
@@ -396,7 +415,7 @@ SELECT FunId,PageId,FunCode,FunName,IsFunMenu,MenuPageId FROM Sys_PageFun WHERE 
 
         public List<Sys_PageFunEntity> GetSys_PageFunEntityList(int PageId)
         {
-            string sql = "SELECT FunId,PageId,FunCode,FunName,IsFunMenu,MenuPageId FROM Sys_PageFun WHERE PageId=@PageId;";
+            string sql = "SELECT FunId,PageId,FunCode,FunName,HasNewPage,NewPageId FROM Sys_PageFun WHERE PageId=@PageId;";
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();

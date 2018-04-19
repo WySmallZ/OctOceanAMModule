@@ -17,6 +17,8 @@ namespace OctOceanAMModules.Models
         public int PageSortNum { get; set; }
 
         public IList<Sys_PageFunEntity> Funs { get; set; }
+        public bool HasChirldPageUrl { get; set; }
+        public bool IsFunPage { get; set; }
 
 
         
