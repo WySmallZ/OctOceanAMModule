@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model OctOceanAMModules.Models.AuthorityViewModel
+
+@section HeadScripts{
+    <link href="~/lib/zTree/css/zTreeStyle/zTreeStyle.css" rel="stylesheet" />
+
+    <script src="~/lib/zTree/js/jquery.ztree.core.min.js"></script>
+    <script src="~/lib/zTree/js/jquery.ztree.excheck.min.js"></script>
+}
+
+<h2>Index</h2>
+<input type="hidden" id="hfallauthoritydata" value="@Model.AllAuthorityData" />
+
+
+<div>
+    <ul id="treeDemo" class="ztree"></ul>
+
+</div>
+
+@section BottomScripts{
+    <script>
+
+        var allauthoritydata = JSON.parse($('#hfallauthoritydata').val());
+
+
+
+
+
+
+        var zTreeObj;
+        // zTree 的参数配置，深入使用请参考 API 文档（setting 配置详解）
+        var setting = {
+            check: {
+                enable: true,
+                autoCheckTrigger: false, //否触发 beforeCheck / onCheck 事件回调函数
+                chkStyle: "checkbox",
+                chkboxType: { "Y": "ps", "N": "ps" }
+            },
+            callback: {
+
+                beforeCheck: function (treeId, treeNode) {
+                    //捕获 勾选 或 取消勾选 之前的事件回调函数，并且根据返回值确定是否允许 勾选 或 取消勾选
+                    return true;
+                },
+                onCheck: function (event, treeId, treeNode) {
+                    //用于捕获 checkbox / radio 被勾选 或 取消勾选的事件回调函数
+                    //如果设置了 setting.callback.beforeCheck 方法，且返回 false，将无法触发 onCheck 事件回调函数。
+
+                }
+
+            },
+            data: {
+                simpleData: {
+                    enable: true,
+                    idKey: "id",
+                    pIdKey: "pId",
+                    rootPId: 0
+                }
+            },
+            view: {
+                nameIsHTML: true
+            }
+
+
+        };
+        // zTree 的数据属性，深入使用请参考 API 文档（zTreeNode 节点数据详解）
+        var zNodes = allauthoritydata;
+        
+
+        $(document).ready(function () {
+            zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+        });
+    </script>
+}

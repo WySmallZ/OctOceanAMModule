@@ -74,6 +74,7 @@ namespace OctOceanAMModules.Controllers
 
             foreach (int pageId in dic.Keys)
             {
+                //如果一个父级A包含子级B，子级B又包含子级C，那么子级B既存在于key为A的子集合中，同时本身也作为父级存在于Key中，所以此处为了避免重复添加，必须进行是否已经添加判断
                 if (MenuList.FirstOrDefault(a => a.PageId == pageId) == null)
                 {
                     AddMenu(dic[pageId], dic, MenuList);

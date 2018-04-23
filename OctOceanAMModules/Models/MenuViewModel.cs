@@ -20,6 +20,8 @@ namespace OctOceanAMModules.Models
         public bool HasChirldPageUrl { get; set; }
         public bool IsFunPage { get; set; }
 
+        public bool HasFuns => (Funs != null && Funs.Any());
+
 
         
     }

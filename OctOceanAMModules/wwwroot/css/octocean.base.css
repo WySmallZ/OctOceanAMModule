@@ -4,3 +4,7 @@
     height: 18px;
     line-height: 1.5;
 }
+
+.ztree li {
+    line-height: 18px;
+}
