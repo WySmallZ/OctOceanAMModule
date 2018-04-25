@@ -1,5 +1,6 @@
 ﻿body {
 }
+
 #myfuntbody input {
     height: 18px;
     line-height: 1.5;
@@ -8,3 +9,32 @@
 .ztree li {
     line-height: 18px;
 }
+
+    .ztree li span.fun_ico_docu {
+        background-image: url('../images/fun.png');
+        background-size: 14px;
+    }
+
+
+    .ztree li span.folder_ico_close {
+        background-image: url('../images/folder_close.png');
+        background-size: 14px;
+    }
+    .ztree li span.folder_ico_open {
+        background-image: url('../images/folder_open.png');
+        background-size: 15px;
+    }
+
+    .ztree li span.page_ico_close {
+        background-image: url('../images/page_close.png');
+        background-size: 14px;
+    }
+
+    .ztree li span.page_ico_open {
+        background-image: url('../images/page_open.png');
+        background-size: 14px;
+    }
+    .ztree li span.page_ico_docu {
+        background-image: url('../images/page_open.png');
+        background-size: 14px;
+    }

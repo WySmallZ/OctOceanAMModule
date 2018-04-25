@@ -21,6 +21,10 @@ namespace OctOceanAMModules.Controllers
 
 
 
+
+        
+
+
         private void AddMenu(Sys_PageMenuEntity entity, Dictionary<int, Sys_PageMenuEntity> dic, List<AuthorityJsonData> authorityvms)
         {
             MenuViewModel vm = new MenuViewModel()
@@ -36,18 +40,21 @@ namespace OctOceanAMModules.Controllers
 
             };
 
-    
-             
+
+
+
+
+
 
             //先添加菜单
-            authorityvms.Add(new AuthorityJsonData { Id = vm.PageId.ToString(), PId = vm.ParentId.ToString(), Name = vm.PageTitle, Checked = false });
+            authorityvms.Add(new AuthorityJsonData { Id = vm.PageId.ToString(), PId = vm.ParentId.ToString(), Name = vm.PageTitle, Checked = false, IconSkin = (vm.IsFunPage || vm.HasFuns || (!vm.HasChirldPageUrl)) ? "page" : "folder" });
             if (vm.Funs != null && vm.Funs.Any())
             {
                 foreach (var f in vm.Funs)
                 {
                     if (!f.IsFunMenuStatus)
                     {
-                        authorityvms.Add(new AuthorityJsonData { Id = "f_" + f.FunId, PId = f.PageId.ToString(), Name = f.FunName, Checked = false });
+                        authorityvms.Add(new AuthorityJsonData { Id = "f_" + f.FunId, PId = f.PageId.ToString(), Name = f.FunName, Checked = false, IconSkin = "fun" });
                     }
 
                 }
@@ -78,17 +85,17 @@ namespace OctOceanAMModules.Controllers
 
 
                     };
-            
-                    
 
-                    authorityvms.Add(new AuthorityJsonData { Id = vm2.PageId.ToString(), PId = vm2.ParentId.ToString(), Name = vm2.PageTitle, Checked = false  });
+
+
+                    authorityvms.Add(new AuthorityJsonData { Id = vm2.PageId.ToString(), PId = vm2.ParentId.ToString(), Name = vm2.PageTitle, Checked = false, IconSkin = (vm2.IsFunPage || vm2.HasFuns|| (!vm2.HasChirldPageUrl)) ? "page" : "folder" });
                     if (vm2.Funs != null && vm2.Funs.Any())
                     {
                         foreach (var f in vm2.Funs)
                         {
                             if (!f.IsFunMenuStatus)
                             {
-                                authorityvms.Add(new AuthorityJsonData { Id = "f_" + f.FunId, PId = f.PageId.ToString(), Name = f.FunName, Checked = false});
+                                authorityvms.Add(new AuthorityJsonData { Id = "f_" + f.FunId, PId = f.PageId.ToString(), Name = f.FunName, Checked = false, IconSkin = "fun" });
                             }
                         }
                     }

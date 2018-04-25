@@ -21,13 +21,20 @@
 
 </div>
 
+<div>
+    <button class="layui-btn layui-btn-green" type="button" id="btnSave"><i class="layui-icon">&#xe609;</i>保存</button>
+
+
+
+</div>
+
 @section BottomScripts{
     <script>
 
         var allauthoritydata = JSON.parse($('#hfallauthoritydata').val());
 
 
-
+ 
 
 
 
@@ -73,6 +80,18 @@
 
         $(document).ready(function () {
             zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+
+
+
+            $('#btnSave').click(function () {
+                 
+                var nodes = zTreeObj.getCheckedNodes(true);
+                console.log(nodes);
+            });
+
         });
+
+
+      
     </script>
 }
