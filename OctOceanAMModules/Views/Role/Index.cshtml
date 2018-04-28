@@ -13,10 +13,11 @@
 @section BottomScripts{
 
     @*自定义列工具条*@
-    <script type="text/html" id="roletoolbar">
-        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit"><i class="layui-icon">&#xe642;</i>编辑</a>
-        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i>删除</a>
-    </script>
+<script type="text/html" id="roletoolbar">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit"><i class="layui-icon">&#xe642;</i>编辑</a>
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="authority"><i class="layui-icon">&#xe642;</i>权限</a>
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del"><i class="layui-icon">&#xe640;</i>删除</a>
+</script>
 
 
     <script>
@@ -49,6 +50,35 @@
 
 
                 });
+            },
+            authortyRole: function (roleId) {
+
+                layer.open({
+                    type: 2 //你可以title: ['文本', 'font-size:18px;']，数组第二项可以写任意css样式；如果你不想显示标题栏，你可以title: false
+                    , title: ["角色权限", 'font-size:18px']
+                    , content: '/Authority/Index?RoleId=' + roleId
+                    , area: ['600px', '500px']
+                    , resize: false//是否可以拉伸
+                    //右上角关闭回调
+                    , cancel: function (index, layero) {
+                        //pagefunction.cancel = true;
+                    }
+                    , end: function () {
+                        //if (pagefunction.cancel) {
+                        //    pagefunction.cancel = false;
+                        //}
+                        //else {
+                        //    tablelns.reload();
+
+                        //}
+
+                    }
+                    , closeBtn: 2
+                    , btnAlign: 'c' //居中
+
+
+                });
+
             }
 
         };
@@ -132,6 +162,10 @@
                 //obj.update({
                 //    articleTitle: 'wwwww' //使用这种方法可以直接更新表格中的值
                 //});
+            }
+            else if (layEvent == "authority") {
+
+                pagefunction.authortyRole(data.roleId);
             }
 
         });

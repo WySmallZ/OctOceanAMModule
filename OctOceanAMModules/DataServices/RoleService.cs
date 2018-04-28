@@ -18,46 +18,47 @@ namespace OctOceanAMModules.DataServices
 
 
 
-        public int InsertRole(Sys_RoleEntity sys_RoleEntity)
+        public int InsertRole(Sys_RoleEntity _sys_RoleEntity)
         {
-            string sql = "INSERT INTO Sys_Role ( RoleCode, RoleName ) VALUES  ( @RoleCode,@RoleName)";
+            string sql = "INSERT INTO Sys_Role ( RoleCode, RoleName,Authorities ) VALUES  ( @RoleCode,@RoleName,@Authorities)";
             using (SqlConnection conn = new SqlConnection(this.SqlConnectionString))
             {
                 conn.Open();
-                return conn.Execute(sql, new { RoleCode = sys_RoleEntity.RoleCode, RoleName = sys_RoleEntity.RoleName });
+                return conn.Execute(sql, new { RoleCode = _sys_RoleEntity.RoleCode, RoleName = _sys_RoleEntity.RoleName, Authorities=_sys_RoleEntity.Authorities });
             }
         }
 
-        public int InsetRole(IList<Sys_RoleEntity> sys_Roles)
+        public int InsetRole(IList<Sys_RoleEntity> _sys_Roles_Entity)
         {
-            string sql = "INSERT INTO Sys_Role ( RoleCode, RoleName ) VALUES  ( @RoleCode,@RoleName)";
+            string sql = "INSERT INTO Sys_Role ( RoleCode, RoleName,Authorities ) VALUES  ( @RoleCode,@RoleName,@Authorities)";
             using (SqlConnection conn = new SqlConnection(this.SqlConnectionString))
             {
                 conn.Open();
                 return conn.Execute(sql,
-                    sys_Roles.Select(a => new { RoleCode = a.RoleCode, RoleName = a.RoleName }).ToArray()
+                    _sys_Roles_Entity.Select(a => new { RoleCode = a.RoleCode, RoleName = a.RoleName, Authorities=a.Authorities }).ToArray()
                     );
             }
         }
 
-        public int UpdateRole(Sys_RoleEntity sys_RoleEntity)
+        public int UpdateRole(Sys_RoleEntity _sys_RoleEntity)
         {
-            string sql = "UPDATE Sys_Role SET RoleCode=@RoleCode,RoleName=@RoleName WHERE RoleId=@RoleId";
+            string sql = "UPDATE Sys_Role SET RoleCode=@RoleCode,RoleName=@RoleName,Authorities=@Authorities WHERE RoleId=@RoleId";
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();
                 return connection.Execute(sql, new
                 {
-                    RoleCode = sys_RoleEntity.RoleCode,
-                    RoleName = sys_RoleEntity.RoleName,
-                    RoleId = sys_RoleEntity.RoleId
+                    RoleCode = _sys_RoleEntity.RoleCode,
+                    RoleName = _sys_RoleEntity.RoleName,
+                    RoleId = _sys_RoleEntity.RoleId,
+                    Authorities=_sys_RoleEntity.Authorities
                 });
             }
         }
 
         public int UpdateRole(IList<Sys_RoleEntity> sys_Roles)
         {
-            string sql = "UPDATE Sys_Role SET RoleCode=@RoleCode,RoleName=@RoleName WHERE RoleId=@RoleId";
+            string sql = "UPDATE Sys_Role SET RoleCode=@RoleCode,RoleName=@RoleName,Authorities=@Authorities WHERE RoleId=@RoleId";
             using (SqlConnection conn = new SqlConnection(this.SqlConnectionString))
             {
                 conn.Open();
@@ -66,7 +67,8 @@ namespace OctOceanAMModules.DataServices
                     {
                         RoleCode = a.RoleCode,
                         RoleName = a.RoleName,
-                        RoleId = a.RoleId
+                        RoleId = a.RoleId,
+                        Authorities=a.Authorities
                     }
                     ).ToArray()
                 );
@@ -109,7 +111,7 @@ namespace OctOceanAMModules.DataServices
 
         public List<Sys_RoleEntity> GetRoleList()
         {
-            string sql = "SELECT RoleId,RoleCode,RoleName FROM Sys_Role";
+            string sql = "SELECT RoleId,RoleCode,RoleName,Authorities FROM Sys_Role";
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();
@@ -119,7 +121,7 @@ namespace OctOceanAMModules.DataServices
 
         public Sys_RoleEntity GetSys_RoleEntity(int RoleId)
         {
-            string sql = "SELECT RoleId,RoleCode,RoleName FROM Sys_Role WHERE RoleId=@RoleId";
+            string sql = "SELECT RoleId,RoleCode,RoleName,Authorities FROM Sys_Role WHERE RoleId=@RoleId";
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();
@@ -129,7 +131,7 @@ namespace OctOceanAMModules.DataServices
 
         public Sys_RoleEntity GetSys_RoleEntity(string RoleCode)
         {
-            string sql = "SELECT RoleId,RoleCode,RoleName FROM Sys_Role WHERE RoleCode=@RoleCode";
+            string sql = "SELECT RoleId,RoleCode,RoleName,Authorities FROM Sys_Role WHERE RoleCode=@RoleCode";
             using (var connection = new SqlConnection(SqlConnectionString))
             {
                 connection.Open();
@@ -146,9 +148,9 @@ namespace OctOceanAMModules.DataServices
 SELECT COUNT(1) FROM Sys_Role;
 with wt as 
 (
-    select ROW_NUMBER() OVER(ORDER BY RoleId) AS SNumber,RoleId,RoleCode,RoleName FROM Sys_Role
+    select ROW_NUMBER() OVER(ORDER BY RoleId) AS SNumber,RoleId,RoleCode,RoleName,Authorities FROM Sys_Role
 )
-select RoleId,RoleCode,RoleName from wt where wt.SNumber BETWEEN {0} AND {1} ;", start,end);
+select RoleId,RoleCode,RoleName,Authorities from wt where wt.SNumber BETWEEN {0} AND {1} ;", start,end);
 
             using(var connection=new SqlConnection(SqlConnectionString))
             {

@@ -11,6 +11,12 @@ namespace OctOceanAMModules.DataServices
         public ConfigService(string _SqlConntcionString)
         {
             SqlConntcionString = _SqlConntcionString;
+            PageMenuFun.PageMenuAndFunPool.SqlConnectionString = _SqlConntcionString;
+            if (PageMenuFun.PageMenuAndFunPool.Dic_ParentPageId_ChirldPageMenus == null)
+            {
+                PageMenuFun.PageMenuAndFunPool.RefreshAllMenuAndFunData();
+            }
+
         }
 
        

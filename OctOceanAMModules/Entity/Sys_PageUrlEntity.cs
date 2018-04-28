@@ -32,10 +32,19 @@ namespace OctOceanAMModules.Entity
         /// </summary>
         public int MenuSortNum { get; set; }
         
+
+        /// <summary>
+        /// 当前页面是否是功能页面，即由某个按钮或链接打开的页面
+        /// </summary>
         public int IsFunPage { get; set; }
+        /// <summary>
+        /// 当前页面是否是功能页面，即由某个按钮或链接打开的页面
+        /// </summary>
         public bool IsFunPageStatus => IsFunPage > 0;
 
-
+        /// <summary>
+        /// 当前页面中所有的功能
+        /// </summary>
         public IList<Sys_PageFunEntity> PageFuns { get; set; }
 
 

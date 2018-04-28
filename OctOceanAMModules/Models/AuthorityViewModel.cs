@@ -10,6 +10,8 @@ namespace OctOceanAMModules.Models
     {
        public string AllAuthorityData { get; set; }
 
+        public int RoleId { get; set; }
+
     }
  
 

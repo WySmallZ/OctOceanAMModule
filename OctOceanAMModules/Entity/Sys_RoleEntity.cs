@@ -10,5 +10,7 @@ namespace OctOceanAMModules.Entity
         public int RoleId { get; set; }
         public string RoleCode { get; set; }
         public string RoleName { get; set; }
+
+        public string Authorities { get; set; }
     }
 }

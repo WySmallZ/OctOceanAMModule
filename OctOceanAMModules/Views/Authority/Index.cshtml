@@ -1,7 +1,7 @@
 ﻿
 @{
     ViewData["Title"] = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_LayoutEmpty.cshtml";
 }
 @model OctOceanAMModules.Models.AuthorityViewModel
 
@@ -11,30 +11,34 @@
     <script src="~/lib/zTree/js/jquery.ztree.core.min.js"></script>
     <script src="~/lib/zTree/js/jquery.ztree.excheck.min.js"></script>
 }
+    <div style="padding:20px;">
+        <form method="post">
+            <input type="hidden" id="hfallauthoritydata" value="@Model.AllAuthorityData" />
+            <input type="hidden" id="hfRoleId" name="roleId" value="@Model.RoleId" />
 
-<h2>Index</h2>
-<input type="hidden" id="hfallauthoritydata" value="@Model.AllAuthorityData" />
+            <div style="height:370px; border:1px solid #e1dddd; overflow-y:auto;">
+                <ul id="treeDemo" class="ztree"></ul>
 
+            </div>
 
-<div>
-    <ul id="treeDemo" class="ztree"></ul>
+            <div style="text-align:center; padding-top:10px;">
 
-</div>
-
-<div>
-    <button class="layui-btn layui-btn-green" type="button" id="btnSave"><i class="layui-icon">&#xe609;</i>保存</button>
+                <input type="hidden" id="checkedData" name="checkedData" />
+                <button class="layui-btn layui-btn-green layui-btn-sm" type="button" id="btnSave"><i class="layui-icon">&#xe609;</i>保存</button>
 
 
 
-</div>
+            </div>
 
+        </form>
+    </div>
 @section BottomScripts{
     <script>
 
         var allauthoritydata = JSON.parse($('#hfallauthoritydata').val());
 
 
- 
+
 
 
 
@@ -76,7 +80,7 @@
         };
         // zTree 的数据属性，深入使用请参考 API 文档（zTreeNode 节点数据详解）
         var zNodes = allauthoritydata;
-        
+
 
         $(document).ready(function () {
             zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
@@ -84,14 +88,57 @@
 
 
             $('#btnSave').click(function () {
-                 
+
                 var nodes = zTreeObj.getCheckedNodes(true);
-                console.log(nodes);
+
+
+                var data = [];
+                for (var i in nodes) {
+                    data.push({
+                        Id: nodes[i].id,
+                        FunId: nodes[i].funId,
+                        PId: nodes[i].pId,
+                        IsFun: nodes[i].isFun,
+                        IsFunPage: nodes[i].isFunPage,
+                        Name:nodes[i].name
+                    });
+
+                }
+
+
+                //console.log(nodes);
+
+                //console.log(JSON.stringify(data));
+
+
+                $.post("/Authority/Index", {
+                    checkedData: JSON.stringify(data),
+                    roleId: $('#hfRoleId').val()
+
+                }, function (rd) {
+                    
+                    console.log(rd);
+                    if (rd.status) {
+                        layer.alert('操作完成！', { icon: 1 }, function () {
+                            //假设这是iframe页
+                            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                            parent.layer.close(index); //再执行关闭
+
+                        });
+
+                    }
+                    else {
+                        layer.alert('更新失败！', { icon: 5 });
+
+                    }
+
+
+                 }, "json"); 
             });
 
         });
 
 
-      
+
     </script>
 }

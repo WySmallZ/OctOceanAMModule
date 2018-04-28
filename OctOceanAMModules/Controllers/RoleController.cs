@@ -15,6 +15,8 @@ namespace OctOceanAMModules.Controllers
         {
             _roleService = roleService;
         }
+
+
         public IActionResult Index()
         {
             return View();
@@ -26,6 +28,7 @@ namespace OctOceanAMModules.Controllers
             var entity= _roleService.GetSys_RoleEntity(RoleId);
             return View(entity);
         }
+
 
         [HttpPost]
         public IActionResult Edit([FromForm]Sys_RoleEntity entity)
@@ -84,7 +87,15 @@ namespace OctOceanAMModules.Controllers
             //删除角色
             await _roleService.DeleteRoleAsync(RoleId);
             return new { status = 1 };
-            //删除该角色下的权限
+            //todo:删除该角色下的权限
+        }
+
+
+        public IActionResult Select(int UserId)
+        {
+            return NotFound();
+           
+
         }
     }
 }

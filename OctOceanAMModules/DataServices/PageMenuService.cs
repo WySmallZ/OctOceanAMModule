@@ -16,98 +16,6 @@ namespace OctOceanAMModules.DataServices
             this.SqlConnectionString = configService.SqlConntcionString;
         }
 
-
-
-
-
-
-
-        //查询出两个表的数据
-        public Dictionary<int, Sys_PageMenuEntity> getSys_PageMenuEntityDic()
-        {
-            List<Sys_PageUrlEntity> pageUrlList = new List<Sys_PageUrlEntity>();
-            Dictionary<int, List<Sys_PageFunEntity>> dic_pageId_FunEntity = new Dictionary<int, List<Sys_PageFunEntity>>();
-
-
-            string sql = @"
-SELECT FunId,PageId,FunCode,FunName,HasNewPage,NewPageId FROM Sys_PageFun;
-SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum,IsFunPage FROM Sys_PageUrl  ORDER BY ParentMenuPageId ASC,MenuSortNum ASC;"; //排序必不可少
-            using (var connection = new SqlConnection(SqlConnectionString))
-            {
-                connection.Open();
-                using (var multi = connection.QueryMultiple(sql))
-                {
-                    dic_pageId_FunEntity = multi.Read<Sys_PageFunEntity>().GroupBy(a => a.PageId).ToDictionary(a => a.Key, b => b.ToList());
-                    pageUrlList = multi.Read<Sys_PageUrlEntity>().ToList();
-                }
-            }
-            //定义一个键值对，该键为拥有子页面的父级PageId 
-            Dictionary<int, Sys_PageMenuEntity> dic_parentpageId_menuentity = new Dictionary<int, Sys_PageMenuEntity>();
-
-            foreach (var urlentity in pageUrlList)
-            {
-                urlentity.PageFuns = dic_pageId_FunEntity.ContainsKey(urlentity.PageId) ? dic_pageId_FunEntity[urlentity.PageId] : null;
-
-
-
-
-                if (urlentity.ParentMenuPageId > 0)
-                {
-                    //如果不是根链接，是子链接，因为上面排序规则，实际执行时，并不会走该if中的语句
-                    if (!dic_parentpageId_menuentity.ContainsKey(urlentity.ParentMenuPageId))
-                    {
-                        //查找根链接
-                        var pe = pageUrlList.FirstOrDefault(u => u.PageId == urlentity.ParentMenuPageId);
-                        if (pe != null)
-                        {
-                            dic_parentpageId_menuentity.Add(urlentity.ParentMenuPageId
-                            , new Sys_PageMenuEntity()
-                            {
-                                PageId = urlentity.ParentMenuPageId,
-                                Sys_PageUrl = pe,
-
-                                ChirldMenuPageUrls = new List<Sys_PageUrlEntity>()
-                            });
-
-                            dic_parentpageId_menuentity[urlentity.ParentMenuPageId].ChirldMenuPageUrls.Add(urlentity);
-                        }
-                    }
-                    else
-                    {
-                        dic_parentpageId_menuentity[urlentity.ParentMenuPageId].ChirldMenuPageUrls.Add(urlentity);
-                    }
-
-                }
-                else
-                {
-                    //如果是根链接
-                    if (!dic_parentpageId_menuentity.ContainsKey(urlentity.PageId))
-                    {
-                        dic_parentpageId_menuentity.Add(urlentity.PageId
-                            , new Sys_PageMenuEntity()
-                            {
-                                PageId = urlentity.PageId,
-                                Sys_PageUrl = urlentity,
-                                ChirldMenuPageUrls = new List<Sys_PageUrlEntity>()
-                            });
-                    }
-                }
-
-
-
-
-            }
-            return dic_parentpageId_menuentity;
-
-
-
-
-        }
-
-
-
-
-
         public bool InsertSys_PageUrl(Sys_PageUrlEntity _sys_PageUrlEntity, out int PageId)
         {
             PageId = 0;
@@ -360,17 +268,39 @@ SELECT PageId,PageUrl,PageTitle,ParentMenuPageId,MenuSortNum,IsFunPage FROM Sys_
         }
 
 
-        public async Task<int> DeleteSys_PageUrlAsync(int PageId)
+        public bool DeleteSys_PageUrlAndFuns(int PageId)
         {
-            string sql = "DELETE FROM Sys_PageUrl  WHERE PageId=@PageId Or ParentMenuPageId=@PageId; DELETE FROM Sys_PageFun WHERE PageId=@PageId OR NewPageId=@PageId ";
-            using (var connection = new SqlConnection(SqlConnectionString))
+            //获取当前页面和当前页面下的所有子页面以及页面中包含的功能集合
+            Tuple<int[], int[]> pagesandfuns = PageMenuFun.PageMenuAndFunPool.GetChildPageAndAllFunsByPageId(PageId);
+            int[] pageids = pagesandfuns.Item1;
+            int[] funs = pagesandfuns.Item2;
+            string del_page_sql = "DELETE FROM Sys_PageUrl  WHERE PageId=@PageId ";
+            string del_fun_sql = "DELETE FROM Sys_PageFun WHERE FunId=@FunId ";
+            using (var conn = new SqlConnection(SqlConnectionString))
             {
-                connection.Open();
-                return await connection.ExecuteAsync(sql, new
+                conn.Open();
+                using (var tran = conn.BeginTransaction())
                 {
-                    PageId = PageId
-                });
+                    try
+                    {
+                        //删除相关的功能
+                        conn.Execute(del_fun_sql, funs.Select(b => new { FunId = b }), tran);
+                        //删除旧的关联菜单
+                        conn.Execute(del_page_sql, pageids.Select(a => new { PageId = a }), tran);
+                       
+
+
+                        tran.Commit();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        tran.Rollback();
+                        return false;
+                    }
+                }
             }
+             
         }
 
 
@@ -401,7 +331,7 @@ SELECT FunId,PageId,FunCode,FunName,HasNewPage,NewPageId FROM Sys_PageFun WHERE 
 
 
 
-        public Sys_PageUrlEntity GetSys_PageUrlEntity(string PageTitle, int ParentMenuPageId)
+        public Sys_PageUrlEntity GetSys_PageUrlEntityNotFuns(string PageTitle, int ParentMenuPageId)
         {
             string sql = " SELECT PageId, PageUrl, PageTitle,ParentMenuPageId,MenuSortNum,IsFunPage FROM Sys_PageUrl WHERE PageTitle=@PageTitle AND ParentMenuPageId=@ParentMenuPageId";
             using (var connection = new SqlConnection(SqlConnectionString))

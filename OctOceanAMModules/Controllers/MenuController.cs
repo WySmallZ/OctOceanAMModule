@@ -20,9 +20,10 @@ namespace OctOceanAMModules.Controllers
         }
 
 
-        private void AddMenu(Sys_PageMenuEntity entity, Dictionary<int, Sys_PageMenuEntity> dic, List<MenuViewModel> menuList)
+        private void AddMenu(Sys_PageUrlEntity_Ex entity, Dictionary<int, Sys_PageUrlEntity_Ex> dic, List<MenuViewModel> menuList)
         {
-            MenuViewModel vm = new MenuViewModel()
+
+            menuList.Add(new MenuViewModel()
             {
                 PageId = entity.PageId,
                 PageUrl = entity.Sys_PageUrl.PageUrl,
@@ -31,12 +32,11 @@ namespace OctOceanAMModules.Controllers
                 PageTitle = entity.Sys_PageUrl.PageTitle,
                 Funs = entity.Sys_PageUrl.PageFuns,
                 HasChirldPageUrl = (entity.ChirldMenuPageUrls != null && entity.ChirldMenuPageUrls.Count > 0),
-                 IsFunPage=entity.Sys_PageUrl.IsFunPageStatus
+                IsFunPage = entity.Sys_PageUrl.IsFunPageStatus
 
-            };
-            menuList.Add(vm);
+            });
 
-            foreach (var _entity in entity.ChirldMenuPageUrls.OrderBy(a => a.MenuSortNum).ToList())
+            foreach (Sys_PageUrlEntity _entity in entity.ChirldMenuPageUrls.OrderBy(a => a.MenuSortNum).ToList())
             {
                 //如果该页面是父级页面，就继续递归添加子级
                 if (dic.ContainsKey(_entity.PageId))
@@ -46,7 +46,7 @@ namespace OctOceanAMModules.Controllers
                 else
                 {
                     //如果不是父级页面，添加本身
-                    MenuViewModel vm2 = new MenuViewModel()
+                    menuList.Add(new MenuViewModel()
                     {
                         PageId = _entity.PageId,
                         PageUrl = _entity.PageUrl,
@@ -55,10 +55,8 @@ namespace OctOceanAMModules.Controllers
                         PageTitle = _entity.PageTitle,
                         Funs = _entity.PageFuns,
                         HasChirldPageUrl = false,
-                        IsFunPage =_entity.IsFunPageStatus
-                    };
-
-                    menuList.Add(vm2);
+                        IsFunPage = _entity.IsFunPageStatus
+                    });
                 }
             }
 
@@ -70,7 +68,7 @@ namespace OctOceanAMModules.Controllers
         public IActionResult Index()
         {
             List<MenuViewModel> MenuList = new List<MenuViewModel>();
-            Dictionary<int, Sys_PageMenuEntity> dic = _pageMenuService.getSys_PageMenuEntityDic();
+            Dictionary<int, Sys_PageUrlEntity_Ex> dic = DataServices.PageMenuFun.PageMenuAndFunPool.Dic_ParentPageId_ChirldPageMenus;
 
             foreach (int pageId in dic.Keys)
             {
@@ -118,7 +116,7 @@ namespace OctOceanAMModules.Controllers
             int PageId = entity.PageId;
 
             //判断是否存在维护的code
-            var _tempentity = _pageMenuService.GetSys_PageUrlEntity(entity.PageTitle, entity.ParentMenuPageId);
+            var _tempentity = _pageMenuService.GetSys_PageUrlEntityNotFuns(entity.PageTitle, entity.ParentMenuPageId);
             //修改操作
             if (entity.PageId > 0)
             {
@@ -157,14 +155,14 @@ namespace OctOceanAMModules.Controllers
 
             return View(_pageMenuService.GetSys_PageUrlEntity(PageId));
         }
-
-        //TODO:要递归删除所有项
-        public async Task<object> Delete(int PageId)
+ 
+        public   IActionResult Delete(int PageId)
         {
             //删除角色
-            await _pageMenuService.DeleteSys_PageUrlAsync(PageId);
-            return new { status = 1 };
-            //删除该角色下的权限
+            _pageMenuService .DeleteSys_PageUrlAndFuns(PageId);
+
+            return Json(new { status = 1 });
+       
         }
     }
 }
